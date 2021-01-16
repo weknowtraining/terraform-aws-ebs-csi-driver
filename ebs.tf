@@ -43,7 +43,7 @@ resource "aws_iam_role_policy_attachment" "this" {
   policy_arn = aws_iam_policy.ebs-csi.arn
 }
 
-resource "helm_release" "ebs-csi" {
+resource "helm_release" "this" {
   name        = "aws-ebs-csi-driver"
   repository  = "https://kubernetes-sigs.github.io/aws-ebs-csi-driver"
   chart       = "aws-ebs-csi-driver"
