@@ -35,12 +35,12 @@ data "aws_iam_policy_document" "this" {
 resource "aws_iam_policy" "this" {
   name        = "Amazon_EBS_CSI_Driver"
   description = "Let EKS cluster EBS CSI driver make volumes"
-  policy      = data.aws_iam_policy_document.ebs-csi.json
+  policy      = data.aws_iam_policy_document.this.json
 }
 
 resource "aws_iam_role_policy_attachment" "this" {
   role       = var.worker_iam_role_name
-  policy_arn = aws_iam_policy.ebs-csi.arn
+  policy_arn = aws_iam_policy.this.arn
 }
 
 resource "helm_release" "this" {
