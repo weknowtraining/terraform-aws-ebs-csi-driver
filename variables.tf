@@ -22,7 +22,6 @@ variable "cluster_id" {
 }
 
 variable "storage_class_name" {
-  default     = "fast"
   description = "The name to give the new StorageClass"
 }
 
