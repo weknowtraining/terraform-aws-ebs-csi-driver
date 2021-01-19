@@ -61,6 +61,11 @@ resource "helm_release" "this" {
     value = var.volume_scheduling
   }
 
+  set {
+    name  = "enableVolumeSnapshot"
+    value = var.volume_snapshot
+  }
+
   dynamic "set" {
     for_each = var.extra_tags
     content {

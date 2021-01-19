@@ -17,6 +17,11 @@ variable "volume_scheduling" {
   description = "Whether to allow volume scheduling"
 }
 
+variable "volume_snapshot" {
+  default     = true
+  description = "Whether to allow volume snapshots"
+}
+
 variable "cluster_id" {
   description = "The EKS cluster_id"
 }
