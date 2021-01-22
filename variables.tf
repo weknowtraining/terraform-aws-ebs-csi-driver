@@ -1,7 +1,3 @@
-terraform {
-  experiments = [variable_validation]
-}
-
 variable "chart_version" {
   default     = "0.8.2"
   description = "The Helm chart version to install"
