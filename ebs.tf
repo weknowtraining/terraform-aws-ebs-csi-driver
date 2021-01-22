@@ -1,5 +1,4 @@
 # https://docs.aws.amazon.com/eks/latest/userguide/ebs-csi.html
-# https://github.com/kubernetes-sigs/aws-ebs-csi-driver
 data "aws_iam_policy_document" "this" {
   statement {
     effect = "Allow"
@@ -43,6 +42,7 @@ resource "aws_iam_role_policy_attachment" "this" {
   policy_arn = aws_iam_policy.this.arn
 }
 
+# https://github.com/kubernetes-sigs/aws-ebs-csi-driver
 resource "helm_release" "this" {
   name        = "aws-ebs-csi-driver"
   repository  = "https://kubernetes-sigs.github.io/aws-ebs-csi-driver"
@@ -98,6 +98,12 @@ resource "helm_release" "this" {
     name  = "k8sTagClusterId"
     value = var.cluster_id
   }
+
+  values = [
+    yamlencode({
+      nodeSelector = var.node_selector
+    })
+  ]
 }
 
 resource "kubernetes_storage_class" "this" {

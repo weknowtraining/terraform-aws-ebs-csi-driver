@@ -84,3 +84,9 @@ variable "namespace" {
   default     = "kube-system"
   description = "The k8s namespace to install the driver in"
 }
+
+variable "node_selector" {
+  default     = {}
+  type        = map(string)
+  description = "Node selector for the helm chart"
+}
