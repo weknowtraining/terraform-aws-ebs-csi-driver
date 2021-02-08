@@ -1,3 +1,11 @@
+data "aws_eks_cluster" "cluster" {
+  name = var.cluster_id
+}
+
+data "aws_eks_cluster_auth" "cluster" {
+  name = var.cluster_id
+}
+
 # https://docs.aws.amazon.com/eks/latest/userguide/ebs-csi.html
 data "aws_iam_policy_document" "this" {
   statement {
@@ -121,5 +129,30 @@ resource "kubernetes_storage_class" "this" {
     "csi.storage.k8s.io/fstype" = var.fs_type
     encrypted                   = "true"
     kmsKeyId                    = var.kms_key_arn
+  }
+}
+
+locals {
+  log_level_patch = templatefile("${path.module}/patches.d/daemonset.yml", { log_level : var.log_level })
+}
+
+# So ebs-snapshot-controller isn't so loud
+resource "null_resource" "log-level" {
+  triggers = {
+    revision = helm_release.this.metadata.0.revision
+    patch    = sha1(local.log_level_patch)
+  }
+
+  provisioner "local-exec" {
+    command = <<EOH
+cat >/tmp/ca.crt <<EOF
+${base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data)}
+EOF
+kubectl --server="${data.aws_eks_cluster.cluster.endpoint}" --certificate-authority=/tmp/ca.crt --token="${data.aws_eks_cluster_auth.cluster.token}" \
+  patch daemonset ebs-csi-node \
+  --namespace ${var.namespace} \
+  --type json \
+  --patch '${local.log_level_patch}'
+EOH
   }
 }

@@ -1,0 +1,11 @@
+- op: replace
+  path: /spec/template/spec/containers/0/args/3
+  value: --v=${log_level}
+- op: replace
+  path: /spec/template/spec/containers/1/args/2
+  value: --v=${log_level}
+- op: replace
+  path: /spec/template/spec/containers/2/args
+  value:
+    - --csi-address=/csi/csi.sock
+    - --v=${log_level}

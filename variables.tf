@@ -90,3 +90,8 @@ variable "node_selector" {
   type        = map(string)
   description = "Node selector for the helm chart"
 }
+
+variable "log_level" {
+  default     = 4
+  description = "Log level for the containers"
+}
