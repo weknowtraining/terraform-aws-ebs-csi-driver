@@ -1,5 +1,5 @@
 variable "chart_version" {
-  default     = "0.8.2"
+  default     = "0.9.15"
   description = "The Helm chart version to install"
 }
 
@@ -94,4 +94,9 @@ variable "node_selector" {
 variable "log_level" {
   default     = 4
   description = "Log level for the containers"
+}
+
+variable "tolerate_all_taints" {
+  default     = false
+  description = "Whether to tolerate all taints (not usually a good thing, breaks eviction when doing updates)"
 }

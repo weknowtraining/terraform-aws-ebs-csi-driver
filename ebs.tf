@@ -107,6 +107,11 @@ resource "helm_release" "this" {
     value = var.cluster_id
   }
 
+  set {
+    name  = "tolerateAllTaints"
+    value = var.tolerate_all_taints
+  }
+
   values = [
     yamlencode({
       nodeSelector = var.node_selector
