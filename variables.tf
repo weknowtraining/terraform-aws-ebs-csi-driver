@@ -1,21 +1,6 @@
 variable "chart_version" {
-  default     = "0.9.15"
+  default     = "2.4.0"
   description = "The Helm chart version to install"
-}
-
-variable "volume_resizing" {
-  default     = true
-  description = "Whether to allow volume resizing"
-}
-
-variable "volume_scheduling" {
-  default     = true
-  description = "Whether to allow volume scheduling"
-}
-
-variable "volume_snapshot" {
-  default     = true
-  description = "Whether to allow volume snapshots"
 }
 
 variable "cluster_id" {
@@ -35,7 +20,7 @@ variable "kms_key_arn" {
 }
 
 variable "type" {
-  default     = "gp2"
+  default     = "gp3"
   description = "The type of storage to use"
 
   validation {

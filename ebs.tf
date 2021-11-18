@@ -50,6 +50,19 @@ resource "aws_iam_role_policy_attachment" "this" {
   policy_arn = aws_iam_policy.this.arn
 }
 
+locals {
+  resources = {
+    limits = {
+      cpu    = "100m"
+      memory = "128Mi"
+    }
+    requests = {
+      cpu    = "100m"
+      memory = "128Mi"
+    }
+  }
+}
+
 # https://github.com/kubernetes-sigs/aws-ebs-csi-driver
 resource "helm_release" "this" {
   name        = "aws-ebs-csi-driver"
@@ -59,62 +72,49 @@ resource "helm_release" "this" {
   max_history = 10
   namespace   = var.namespace
 
-  set {
-    name  = "enableVolumeResizing"
-    value = var.volume_resizing
-  }
-
-  set {
-    name  = "enableVolumeScheduling"
-    value = var.volume_scheduling
-  }
-
-  set {
-    name  = "enableVolumeSnapshot"
-    value = var.volume_snapshot
-  }
-
   dynamic "set" {
     for_each = var.extra_tags
     content {
-      name  = "extraVolumeTags.${set.key}"
+      name  = "controller.extraVolumeTags.${set.key}"
       value = set.value
     }
   }
 
-  set {
-    name  = "resources.limits.cpu"
-    value = "100m"
-  }
-
-  set {
-    name  = "resources.limits.memory"
-    value = "128Mi"
-  }
-
-  set {
-    name  = "resources.requests.cpu"
-    value = "100m"
-  }
-
-  set {
-    name  = "resources.requests.cpu"
-    value = "128Mi"
-  }
-
-  set {
-    name  = "k8sTagClusterId"
-    value = var.cluster_id
-  }
-
-  set {
-    name  = "tolerateAllTaints"
-    value = var.tolerate_all_taints
-  }
-
   values = [
     yamlencode({
-      nodeSelector = var.node_selector
+      sidecars = {
+        provisioner = {
+          logLevel = var.log_level
+        }
+        attacher = {
+          logLevel = var.log_level
+        }
+        snapshotter = {
+          logLevel = var.log_level
+        }
+        livenessProbe = {
+          logLevel = var.log_level
+        }
+        resizer = {
+          logLevel = var.log_level
+        }
+        nodeDriverRegistrar = {
+          logLevel = var.log_level
+        }
+      }
+      node = {
+        tolerateAllTaints = var.tolerate_all_taints
+        nodeSelector      = var.node_selector
+        resources         = local.resources
+        logLevel          = var.log_level
+      }
+
+      controller = {
+        nodeSelector    = var.node_selector
+        k8sTagClusterId = var.cluster_id
+        resources       = local.resources
+        logLevel        = var.log_level
+      }
     })
   ]
 }
@@ -134,30 +134,5 @@ resource "kubernetes_storage_class" "this" {
     "csi.storage.k8s.io/fstype" = var.fs_type
     encrypted                   = "true"
     kmsKeyId                    = var.kms_key_arn
-  }
-}
-
-locals {
-  log_level_patch = templatefile("${path.module}/patches.d/daemonset.yml", { log_level : var.log_level })
-}
-
-# So ebs-snapshot-controller isn't so loud
-resource "null_resource" "log-level" {
-  triggers = {
-    revision = helm_release.this.metadata.0.revision
-    patch    = sha1(local.log_level_patch)
-  }
-
-  provisioner "local-exec" {
-    command = <<EOH
-cat >/tmp/ca.crt <<EOF
-${base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data)}
-EOF
-kubectl --server="${data.aws_eks_cluster.cluster.endpoint}" --certificate-authority=/tmp/ca.crt --token="${data.aws_eks_cluster_auth.cluster.token}" \
-  patch daemonset ebs-csi-node \
-  --namespace ${var.namespace} \
-  --type json \
-  --patch '${local.log_level_patch}'
-EOH
   }
 }
