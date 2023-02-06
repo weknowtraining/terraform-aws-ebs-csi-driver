@@ -63,62 +63,6 @@ locals {
   }
 }
 
-# https://github.com/kubernetes-sigs/aws-ebs-csi-driver
-resource "helm_release" "this" {
-  name        = "aws-ebs-csi-driver"
-  repository  = "https://kubernetes-sigs.github.io/aws-ebs-csi-driver"
-  chart       = "aws-ebs-csi-driver"
-  version     = var.chart_version
-  max_history = 10
-  namespace   = var.namespace
-
-  dynamic "set" {
-    for_each = var.extra_tags
-    content {
-      name  = "controller.extraVolumeTags.${set.key}"
-      value = set.value
-    }
-  }
-
-  values = [
-    yamlencode({
-      sidecars = {
-        provisioner = {
-          logLevel = var.log_level
-        }
-        attacher = {
-          logLevel = var.log_level
-        }
-        snapshotter = {
-          logLevel = var.log_level
-        }
-        livenessProbe = {
-          logLevel = var.log_level
-        }
-        resizer = {
-          logLevel = var.log_level
-        }
-        nodeDriverRegistrar = {
-          logLevel = var.log_level
-        }
-      }
-      node = {
-        tolerateAllTaints = var.tolerate_all_taints
-        nodeSelector      = var.node_selector
-        resources         = local.resources
-        logLevel          = var.log_level
-      }
-
-      controller = {
-        nodeSelector    = var.node_selector
-        k8sTagClusterId = var.cluster_id
-        resources       = local.resources
-        logLevel        = var.log_level
-      }
-    })
-  ]
-}
-
 resource "kubernetes_storage_class" "this" {
   metadata {
     name = var.storage_class_name
